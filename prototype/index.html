@@ -140,7 +140,7 @@
   .notes ol{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:12px}
   .notes li{display:flex;gap:10px;font-size:14px;line-height:1.45}
   .notes li i{font-style:normal}
-  .num{width:22px;height:22px;border-radius:999px;background:var(--amber);color:#fff;font-size:12px;font-weight:700;display:inline-grid;place-items:center;flex:none}
+  .num{width:22px;height:22px;border-radius:999px;background:#ff5a1f;color:#fff;box-shadow:0 0 0 3px rgba(255,90,31,.28),0 2px 8px rgba(255,90,31,.45);font-size:12px;font-weight:700;display:inline-grid;place-items:center;flex:none}
   .flowbar{display:flex;gap:6px;margin-top:20px;flex-wrap:wrap}
   .flowbar button{font-size:12px;padding:6px 10px;border-radius:999px;background:var(--surface);color:var(--muted)}
   .flowbar button.on{background:var(--ink);color:#fff}
@@ -253,6 +253,20 @@
   .phone{color:var(--ink)}
   @media (max-height:800px) and (min-width:901px){.headline{font-size:32px;letter-spacing:-1px}.lede{font-size:15px}.left{gap:14px}.notes{padding:16px}.notes h2{font-size:17px}.notes ol{margin-top:10px;gap:8px}.flowbar{margin-top:12px}.app{padding:20px 28px}}
   body.board .app{display:none}
+  /* annotations: off by default; on = markers + highlighted notes panel */
+  body:not(.ann):not(.board) .side{display:none}
+  @media (min-width:1181px){body:not(.ann):not(.board) .app{grid-template-columns:minmax(320px,1fr) minmax(0,1fr)}}
+  @media (max-width:1180px) and (min-width:901px){body:not(.ann):not(.board) .right{grid-row:1}}
+  body.ann .notes{background:#17171a;border:1px solid rgba(255,90,31,.6);box-shadow:0 0 0 4px rgba(255,90,31,.10),0 24px 70px rgba(255,90,31,.14);animation:notesin .35s ease-out}
+  @keyframes notesin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  body.ann .notes .step{color:#ff8a5c}
+  body.ann .notes .why{color:#c4c4cc}
+  body.ann .notes li i{color:#f4f4f5}
+  #annBtn{display:inline-flex;align-items:center;gap:8px}
+  #annBtn::before{content:"";width:8px;height:8px;border-radius:9px;background:#ff5a1f;box-shadow:0 0 0 3px rgba(255,90,31,.25)}
+  .tag.num{animation:annpulse 1.8s ease-out infinite}
+  @keyframes annpulse{0%{box-shadow:0 0 0 0 rgba(255,90,31,.6),0 2px 8px rgba(255,90,31,.45)}70%{box-shadow:0 0 0 10px rgba(255,90,31,0),0 2px 8px rgba(255,90,31,.45)}100%{box-shadow:0 0 0 0 rgba(255,90,31,0),0 2px 8px rgba(255,90,31,.45)}}
+  body.board .tag.num{animation:none}
 
   /* ---------- wide 3-column layout ---------- */
   .nav .wrap{max-width:1440px;padding:0 48px}
@@ -279,7 +293,7 @@
   .boardwrap .col > div > ol li{display:flex;gap:8px;line-height:1.4}
 </style>
 </head>
-<body class="ann">
+<body>
 
 <header class="nav"><div class="wrap">
   <a class="brand" href="#"><span class="mark"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="mk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#19c39a"/><stop offset="1" stop-color="#0a8a6a"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#mk)"/><g transform="translate(0 2.5)"><path d="M15 20.5C15 17.5 17.5 15 20.5 15h23c3 0 5.5 2.5 5.5 5.5v15c0 3-2.5 5.5-5.5 5.5H30l-8.5 7.2c-.9.8-2.2.1-2.2-1V41h.2c-2.5-.3-4.5-2.5-4.5-5.1z" fill="#fff"/><g stroke="#0d8f6e" stroke-width="3.6" stroke-linecap="round"><path d="M24.5 25.5v5"/><path d="M32 22v12"/><path d="M39.5 25.5v5"/></g></g></svg>
@@ -292,10 +306,10 @@
 
 <main class="app">
   <div class="left">
-    <h1 class="headline">Practise interviews out loud with ChatGPT</h1>
+    <h1 class="headline">Practice interviews out loud with ChatGPT</h1>
     <p class="lede">A concept for a private, reviewable voice mode for job seekers in India. Tap through the flow and hold the mic to answer.</p>
     <div class="demo-tools">
-      <button class="pill" id="annBtn" aria-pressed="true">Annotations on</button>
+      <button class="pill" id="annBtn" aria-pressed="false">Show annotations</button>
       <button class="pill" id="restart" aria-pressed="false">Restart</button>
     </div>
     <div class="doclinks">
@@ -333,7 +347,7 @@
           <div class="row">
             <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></div>
             <div>
-              <h3>Practise these out loud</h3>
+              <h3>Practice these out loud</h3>
               <p>3 questions · about 5 min · works quietly with earphones · you check each answer before it's scored</p>
             </div>
           </div>
@@ -457,7 +471,7 @@
         <div class="sumcard"><h4>Your biggest win</h4><p>Clear, confident "why Infosys" answer tied to the company's training programme.</p></div>
         <div class="sumcard"><h4>Work on this</h4><p>Use STAR for team stories: you skipped the Result. Cut "basically" (used 5 times).</p></div>
         <div class="sumcard" style="position:relative"><span class="tag num" style="top:-9px;right:-6px">11</span>
-          <div class="switch-row"><div><b style="font-size:15px">Practise again tonight at 9</b><small>One reminder before your interview</small></div><button class="switch on" aria-label="Reminder"></button></div>
+          <div class="switch-row"><div><b style="font-size:15px">Practice again tonight at 9</b><small>One reminder before your interview</small></div><button class="switch on" aria-label="Reminder"></button></div>
         </div>
       </div>
       <div class="actions">
@@ -587,7 +601,7 @@ document.addEventListener("click",e=>{
 });
 $$("#lang button").forEach(b=>b.addEventListener("click",()=>{ $$("#lang button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); langSel=b.textContent; }));
 $("#quiet").addEventListener("click",function(){ this.classList.toggle("on"); $("#quietChip").style.display=this.classList.contains("on")?"":"none"; });
-$("#annBtn").addEventListener("click",function(){ const on=document.body.classList.toggle("ann"); this.setAttribute("aria-pressed",on); this.textContent=on?"Annotations on":"Annotations off"; });
+$("#annBtn").addEventListener("click",function(){ const on=document.body.classList.toggle("ann"); this.setAttribute("aria-pressed",on); this.textContent=on?"Hide annotations":"Show annotations"; });
 $("#restart").addEventListener("click",()=>{ q=0; go(0); });
 
 /* static board for wireframe export: ?board */
