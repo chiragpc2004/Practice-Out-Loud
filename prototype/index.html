@@ -144,8 +144,8 @@
   .flowbar{display:flex;gap:6px;margin-top:20px;flex-wrap:wrap}
   .flowbar button{font-size:12px;padding:6px 10px;border-radius:999px;background:var(--surface);color:var(--muted)}
   .flowbar button.on{background:var(--ink);color:#fff}
-  .tag{position:absolute;z-index:5;display:none}
-  body.ann .tag{display:inline-grid}
+  .tag{position:absolute;z-index:5;display:inline-grid;opacity:0;transform:scale(.6);pointer-events:none}
+  body.ann .tag{opacity:1;transform:none}
 
   /* wireframe board (static export of all screens) */
   body.board .top,body.board .stage{display:none}
@@ -226,7 +226,7 @@
   .nav{background:rgba(11,11,12,.8);border-bottom:1px solid #1f1f22}
   .brand{color:#fff}
   .btn-s.line{background:transparent;color:#ececec;border-color:#2e2e33}
-  .btn-s.line:hover{border-color:#ececec}
+  .btn-s.line:hover,.navlinks a.btn-s:hover{border-color:#ececec;color:#fff;background:#1a1a1d}
   .app{height:calc(100vh - 65px);max-width:1160px;margin:0 auto;padding:28px 28px 24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:56px;align-items:center}
   .left{display:flex;flex-direction:column;gap:18px;max-width:460px;justify-self:end}
   .headline{font-size:40px;line-height:1.08;letter-spacing:-1.4px;font-weight:700;color:#fff}
@@ -253,15 +253,15 @@
   .phone{color:var(--ink)}
   @media (max-height:800px) and (min-width:901px){.headline{font-size:32px;letter-spacing:-1px}.lede{font-size:15px}.left{gap:14px}.notes{padding:16px}.notes h2{font-size:17px}.notes ol{margin-top:10px;gap:8px}.flowbar{margin-top:12px}.app{padding:20px 28px}}
   body.board .app{display:none}
-  /* annotations: off by default; on = markers + highlighted notes panel */
-  body:not(.ann):not(.board) .side{display:none}
-  @media (min-width:1181px){body:not(.ann):not(.board) .app{grid-template-columns:minmax(320px,1fr) minmax(0,1fr)}}
-  @media (max-width:1180px) and (min-width:901px){body:not(.ann):not(.board) .right{grid-row:1}}
-  body.ann .notes{background:#17171a;border:1px solid rgba(255,90,31,.6);box-shadow:0 0 0 4px rgba(255,90,31,.10),0 24px 70px rgba(255,90,31,.14);animation:notesin .35s ease-out}
-  @keyframes notesin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  /* annotations: off by default. Layout never changes; the notes panel dims when off and lights up when on */
+  .notes{transition:opacity .3s ease,border-color .3s ease,box-shadow .3s ease,background .3s ease}
+  body:not(.ann):not(.board) .side .notes{opacity:.38;filter:saturate(.3)}
+  body:not(.ann):not(.board) .side .notes:hover{opacity:.6}
+  body.ann .notes{background:#17171a;border:1px solid rgba(255,90,31,.6);box-shadow:0 0 0 4px rgba(255,90,31,.10),0 24px 70px rgba(255,90,31,.14)}
   body.ann .notes .step{color:#ff8a5c}
   body.ann .notes .why{color:#c4c4cc}
   body.ann .notes li i{color:#f4f4f5}
+  .tag{transition:opacity .25s ease,transform .25s ease}
   #annBtn{display:inline-flex;align-items:center;gap:8px}
   #annBtn::before{content:"";width:8px;height:8px;border-radius:9px;background:#ff5a1f;box-shadow:0 0 0 3px rgba(255,90,31,.25)}
   .tag.num{animation:annpulse 1.8s ease-out infinite}
