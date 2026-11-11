@@ -255,8 +255,8 @@
   body.board .app{display:none}
   /* annotations: off by default. Layout never changes; the notes panel dims when off and lights up when on */
   .notes{transition:opacity .3s ease,border-color .3s ease,box-shadow .3s ease,background .3s ease}
-  body:not(.ann):not(.board) .side .notes{opacity:.38;filter:saturate(.3)}
-  body:not(.ann):not(.board) .side .notes:hover{opacity:.6}
+  body:not(.ann):not(.board) .notes .step{color:#8b8b93}
+  body:not(.ann):not(.board) .notes .num{background:#2a2a2e;color:#d4d4d8;box-shadow:none}
   body.ann .notes{background:#17171a;border:1px solid rgba(255,90,31,.6);box-shadow:0 0 0 4px rgba(255,90,31,.10),0 24px 70px rgba(255,90,31,.14)}
   body.ann .notes .step{color:#ff8a5c}
   body.ann .notes .why{color:#c4c4cc}
