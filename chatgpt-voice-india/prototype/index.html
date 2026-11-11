@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Practice Out Loud — ChatGPT voice prototype</title>
+<style>
+  :root{
+    --bg:#ffffff; --surface:#f4f4f4; --surface2:#f9f9f9; --ink:#0d0d0d; --muted:#5d5d5d; --faint:#8f8f8f;
+    --line:#e5e5e5; --green:#10a37f; --green-ink:#0a7a5e; --green-tint:#e7f6f1; --amber:#b45309; --amber-tint:#fdf3e6;
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--font);color:var(--ink);background:#ececec;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  .top{max-width:1180px;margin:0 auto;padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .top h1{font-size:18px;font-weight:600;letter-spacing:-.2px}
+  .top p{font-size:13px;color:var(--muted);margin-top:2px}
+  .toggles{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-size:13px;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid var(--line)}
+  .pill[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .stage{max-width:1180px;margin:0 auto;padding:20px 24px 40px;display:flex;gap:32px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+
+  /* phone */
+  .phone{width:375px;height:780px;background:var(--bg);border-radius:44px;border:10px solid #111;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.18);flex:none}
+  .status{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:13px;font-weight:600}
+  .screen{position:absolute;inset:40px 0 0 0;display:none;flex-direction:column}
+  .screen.on{display:flex}
+  .bar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex:none}
+  .bar .title{font-size:16px;font-weight:600}
+  .icon-btn{width:36px;height:36px;border-radius:999px;display:grid;place-items:center}
+  .icon-btn:hover{background:var(--surface)}
+  .scroll{flex:1;overflow-y:auto;padding:4px 16px 16px}
+  .msg-user{align-self:flex-end;background:var(--surface);border-radius:20px;padding:10px 14px;font-size:15px;line-height:1.4;max-width:80%;margin:8px 0 14px auto}
+  .msg-ai{font-size:15px;line-height:1.5}
+  .msg-ai ol{padding-left:20px;margin:6px 0}
+  .msg-ai li{margin:3px 0}
+  .composer{flex:none;margin:8px 12px 16px;border:1px solid var(--line);border-radius:28px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+  .composer span{flex:1;color:var(--faint);font-size:15px}
+  .round{width:36px;height:36px;border-radius:999px;display:grid;place-items:center}
+  .round.dark{background:var(--ink);color:#fff}
+
+  .suggest{margin-top:14px;border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px;position:relative}
+  .suggest .row{display:flex;gap:10px;align-items:flex-start}
+  .suggest .ic{width:34px;height:34px;border-radius:999px;background:var(--green-tint);color:var(--green-ink);display:grid;place-items:center;flex:none}
+  .suggest h3{font-size:15px;font-weight:600}
+  .suggest p{font-size:13px;color:var(--muted);line-height:1.4;margin-top:2px}
+  .btn{height:44px;border-radius:999px;font-size:15px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 18px}
+  .btn.dark{background:var(--ink);color:#fff}
+  .btn.light{background:var(--surface)}
+  .btn.ghost{color:var(--muted);font-weight:500}
+  .btn.full{width:100%}
+
+  /* sheet */
+  .dim{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;padding:10px 18px 22px;display:flex;flex-direction:column;gap:14px}
+  .grab{width:38px;height:5px;border-radius:9px;background:#d9d9d9;margin:0 auto 4px}
+  .sheet h2{font-size:19px;font-weight:600;letter-spacing:-.2px}
+  .field{background:var(--surface2);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+  .field div{font-size:15px}
+  .seg{display:flex;background:var(--surface);border-radius:999px;padding:4px;gap:4px}
+  .seg button{flex:1;height:36px;border-radius:999px;font-size:14px;font-weight:500;color:var(--muted)}
+  .seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .switch-row b{font-size:15px;font-weight:600;display:block}
+  .switch-row small{font-size:13px;color:var(--muted);line-height:1.35;display:block;margin-top:2px}
+  .switch{width:46px;height:28px;border-radius:999px;background:#d0d0d0;position:relative;flex:none;transition:.2s}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:999px;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .switch.on{background:var(--green)}
+  .switch.on::after{left:21px}
+  .sub{font-size:13px;color:var(--muted);text-align:center;line-height:1.4}
+
+  /* practice */
+  .progress{display:flex;gap:6px;padding:0 16px}
+  .progress i{flex:1;height:4px;border-radius:9px;background:var(--line)}
+  .progress i.done{background:var(--ink)}
+  .progress i.cur{background:var(--green)}
+  .qcard{margin:18px 16px 0;background:var(--surface2);border:1px solid var(--line);border-radius:22px;padding:18px}
+  .qcard small{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.3px}
+  .qcard h3{font-size:21px;line-height:1.3;font-weight:600;letter-spacing:-.3px;margin-top:6px}
+  .qcard .listen{margin-top:12px;font-size:13px;color:var(--muted);display:inline-flex;gap:6px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+  .chips{display:flex;gap:8px;justify-content:center;padding:14px 16px 0;flex-wrap:wrap}
+  .chip{font-size:12px;padding:6px 10px;border-radius:999px;background:var(--green-tint);color:var(--green-ink);font-weight:500;display:inline-flex;gap:6px;align-items:center}
+  .chip.grey{background:var(--surface);color:var(--muted)}
+  .live{flex:1;margin:14px 16px 0;font-size:16px;line-height:1.5;color:var(--muted);overflow:hidden}
+  .live.has{color:var(--ink)}
+  .mic-wrap{flex:none;display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 0 22px}
+  .mic{width:92px;height:92px;border-radius:999px;background:var(--ink);color:#fff;display:grid;place-items:center;position:relative;touch-action:none;user-select:none;-webkit-user-select:none}
+  .mic.rec{background:var(--green)}
+  .mic.rec::before{content:"";position:absolute;inset:-10px;border-radius:999px;border:3px solid var(--green);opacity:.35;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{transform:scale(.92);opacity:.5}100%{transform:scale(1.15);opacity:0}}
+  .wave{display:flex;gap:3px;height:22px;align-items:center}
+  .wave i{width:3px;border-radius:3px;background:var(--green);height:4px}
+  .mic.rec + .hint .wave i{animation:w 0.9s infinite ease-in-out}
+  @keyframes w{0%,100%{height:4px}50%{height:20px}}
+  .hint{font-size:13px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:6px}
+  .typeinstead{font-size:13px;color:var(--muted);text-decoration:underline}
+
+  /* review */
+  .review{margin:16px;border:1.5px solid var(--ink);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:8px}
+  .review label{font-size:12px;color:var(--muted);font-weight:500}
+  .review .ta{width:100%;min-height:200px;border:none;font-family:inherit;font-size:15px;line-height:1.5;color:var(--ink);outline:none;background:transparent}
+  .flag{background:var(--amber-tint);color:var(--amber);border-radius:6px;padding:0 3px}
+  .tipline{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center}
+  .actions{flex:none;display:flex;gap:10px;padding:0 16px 22px}
+  .actions .btn{flex:1}
+
+  /* feedback */
+  .scores{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+  .score{background:var(--surface2);border:1px solid var(--line);border-radius:16px;padding:10px;text-align:center}
+  .score b{display:block;font-size:20px;font-weight:600}
+  .score span{font-size:11px;color:var(--muted)}
+  .fb{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+  .fb div{font-size:14px;line-height:1.45}
+  .fb h4{font-size:13px;font-weight:600;margin-bottom:2px}
+  .better{background:var(--green-tint);border-radius:16px;padding:12px;font-size:14px;line-height:1.45}
+  .better h4{color:var(--green-ink)}
+
+  /* summary */
+  .big{font-size:44px;font-weight:600;letter-spacing:-1px}
+  .sumcard{background:var(--surface2);border:1px solid var(--line);border-radius:20px;padding:16px;margin-top:14px}
+  .sumcard h4{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:6px}
+  .sumcard p{font-size:15px;line-height:1.45}
+
+  /* notes panel */
+  .notes{width:380px;flex:none;background:#fff;border-radius:24px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.06)}
+  .notes .step{font-size:12px;color:var(--green-ink);font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+  .notes h2{font-size:20px;font-weight:600;letter-spacing:-.3px;margin:6px 0 4px}
+  .notes .why{font-size:14px;color:var(--muted);line-height:1.45}
+  .notes ol{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:12px}
+  .notes li{display:flex;gap:10px;font-size:14px;line-height:1.45}
+  .notes li i{font-style:normal}
+  .num{width:22px;height:22px;border-radius:999px;background:var(--amber);color:#fff;font-size:12px;font-weight:700;display:inline-grid;place-items:center;flex:none}
+  .flowbar{display:flex;gap:6px;margin-top:20px;flex-wrap:wrap}
+  .flowbar button{font-size:12px;padding:6px 10px;border-radius:999px;background:var(--surface);color:var(--muted)}
+  .flowbar button.on{background:var(--ink);color:#fff}
+  .tag{position:absolute;z-index:5;display:none}
+  body.ann .tag{display:inline-grid}
+
+  /* wireframe board (static export of all screens) */
+  body.board .top,body.board .stage{display:none}
+  .boardwrap{display:none}
+  body.board .boardwrap{display:block;padding:32px;background:#fff}
+  body.board .boardwrap .row{display:flex;gap:28px;align-items:flex-start}
+  .boardwrap .col{width:300px;display:flex;flex-direction:column;gap:12px}
+  .boardwrap .phone{transform:scale(.8);transform-origin:top left;margin-bottom:-156px;margin-right:-75px}
+  .boardwrap .col h3{font-size:16px;font-weight:600}
+  .boardwrap .col > div > ol li{font-size:13px}
+  .boardwrap .col > div > ol{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .boardwrap .col > div > ol li{display:flex;gap:8px;line-height:1.4}
+</style>
+</head>
+<body class="ann">
+
+<div class="top">
+  <div>
+    <h1>Practice Out Loud: a voice interview practice prototype for ChatGPT mobile</h1>
+    <p>Tap through the flow. Hold the mic button to talk: in Chrome your speech is transcribed live (allow mic access); elsewhere a sample answer plays.</p>
+  </div>
+  <div class="toggles">
+    <button class="pill" id="annBtn" aria-pressed="true">Annotations on</button>
+    <button class="pill" id="restart" aria-pressed="false">Restart flow</button>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="phone" id="phone">
+    <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+
+    <!-- 1. Chat with nudge -->
+    <section class="screen on" data-s="0">
+      <div class="bar">
+        <button class="icon-btn" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h16M4 16h10"/></svg></button>
+        <span class="title">ChatGPT</span>
+        <button class="icon-btn" aria-label="New chat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+      </div>
+      <div class="scroll" style="display:flex;flex-direction:column">
+        <div class="msg-user">I have my Infosys HR round tomorrow. What questions should I expect?</div>
+        <div class="msg-ai">
+          Here are the questions HR rounds at Infosys usually cover:
+          <ol>
+            <li>Tell me about yourself.</li>
+            <li>Why do you want to join Infosys?</li>
+            <li>Describe a difficult situation in a team.</li>
+            <li>Are you open to relocation?</li>
+          </ol>
+          The best prep is saying your answers out loud, not just reading them.
+        </div>
+        <div class="suggest" id="nudge">
+          <span class="tag num" style="top:-10px;left:-8px">1</span>
+          <div class="row">
+            <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></div>
+            <div>
+              <h3>Practise these out loud</h3>
+              <p>3 questions · about 5 min · works quietly with earphones · you check each answer before it's scored</p>
+            </div>
+          </div>
+          <button class="btn dark full" data-go="1">Start practice</button>
+        </div>
+      </div>
+      <div class="composer">
+        <span>Ask anything</span>
+        <button class="round" aria-label="Dictate"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+        <button class="round dark" aria-label="Voice mode"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></button>
+      </div>
+    </section>
+
+    <!-- 2. Setup sheet -->
+    <section class="screen" data-s="1">
+      <div class="bar"><span></span><span class="title">ChatGPT</span><span></span></div>
+      <div class="scroll"><div class="msg-user">I have my Infosys HR round tomorrow. What questions should I expect?</div></div>
+      <div class="dim"></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <h2>Set up your practice</h2>
+        <div class="field" style="position:relative"><span class="tag num" style="top:-9px;right:-6px">2</span><label>Interview</label><div>HR round · Infosys · Systems Engineer</div></div>
+        <div style="position:relative">
+          <span class="tag num" style="top:-9px;right:-6px">3</span>
+          <div style="font-size:12px;color:var(--muted);margin:0 0 6px 4px">I'll speak in</div>
+          <div class="seg" id="lang"><button class="on">English</button><button>Hinglish</button><button>हिंदी</button></div>
+        </div>
+        <div class="switch-row" style="position:relative">
+          <span class="tag num" style="top:-9px;right:-6px">4</span>
+          <div><b>Quiet mode</b><small>Earphones connected. Low-volume speech works, and answers are never read aloud unless you ask.</small></div>
+          <button class="switch on" id="quiet" aria-label="Quiet mode"></button>
+        </div>
+        <button class="btn dark full" data-go="2">Start · 3 questions</button>
+        <p class="sub">Your answers stay in this chat. You review every transcript before it's scored.</p>
+      </div>
+    </section>
+
+    <!-- 3. Question + hold to talk -->
+    <section class="screen" data-s="2">
+      <div class="bar">
+        <button class="icon-btn" data-go="0" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        <span class="title">Interview practice</span>
+        <span style="width:36px"></span>
+      </div>
+      <div class="progress" id="prog"><i class="cur"></i><i></i><i></i></div>
+      <div class="qcard" style="position:relative">
+        <span class="tag num" style="top:-9px;left:-8px">5</span>
+        <small id="qnum">QUESTION 1 OF 3</small>
+        <h3 id="qtext">Tell me about yourself.</h3>
+        <span class="listen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H3v6h3l5 4zM16 9a4 4 0 0 1 0 6"/></svg>Play in earphones</span>
+      </div>
+      <div class="chips" style="position:relative">
+        <span class="chip" id="quietChip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><rect x="3" y="16" width="4" height="5" rx="1"/><rect x="17" y="16" width="4" height="5" rx="1"/></svg>Quiet mode on</span>
+        <span class="chip grey" id="langChip">English</span>
+      </div>
+      <div class="live" id="live" style="position:relative">Hold the button and answer as you would in the room. A whisper is fine.</div>
+      <div class="mic-wrap" style="position:relative">
+        <span class="tag num" style="top:0;left:108px">6</span>
+        <button class="mic" id="mic" aria-label="Hold to talk"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+        <div class="hint"><div class="wave"><i></i><i style="animation-delay:.1s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.15s"></i><i style="animation-delay:.25s"></i></div><span id="hintText">Hold to talk · release to review</span></div>
+        <button class="typeinstead" data-act="type">Type instead</button>
+      </div>
+    </section>
+
+    <!-- 4. Review transcript -->
+    <section class="screen" data-s="3">
+      <div class="bar">
+        <button class="icon-btn" data-go="2" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <span class="title">Check your answer</span>
+        <span style="width:36px"></span>
+      </div>
+      <div class="progress" id="prog2"><i class="cur"></i><i></i><i></i></div>
+      <div class="review" style="position:relative">
+        <span class="tag num" style="top:-10px;left:-8px">7</span>
+        <label>What we heard. Tap to fix anything before it's scored.</label>
+        <div class="ta" id="transcript" contenteditable="true" role="textbox" aria-label="Transcript"></div>
+        <div class="tipline" style="position:relative"><span class="tag num" style="position:static;margin-right:2px">8</span><span><span class="flag">Highlighted</span> words we weren't sure about</span></div>
+      </div>
+      <div style="flex:1"></div>
+      <div class="actions">
+        <button class="btn light" data-go="2" data-act="rerecord">Re-record</button>
+        <button class="btn dark" data-act="submit">Get feedback</button>
+      </div>
+    </section>
+
+    <!-- 5. Feedback -->
+    <section class="screen" data-s="4">
+      <div class="bar">
+        <span style="width:36px"></span>
+        <span class="title">Feedback</span>
+        <span style="width:36px"></span>
+      </div>
+      <div class="progress" id="prog3"><i class="cur"></i><i></i><i></i></div>
+      <div class="scroll" style="position:relative">
+        <span class="tag num" style="top:6px;left:6px">9</span>
+        <div class="scores">
+          <div class="score"><b id="s1">7/10</b><span>Structure</span></div>
+          <div class="score"><b id="s2">8/10</b><span>Clarity</span></div>
+          <div class="score"><b id="s3">3</b><span>Filler words</span></div>
+        </div>
+        <div class="fb">
+          <div><h4>What worked</h4><span id="fbGood"></span></div>
+          <div><h4>Try next time</h4><span id="fbImprove"></span></div>
+          <div class="better" style="position:relative"><span class="tag num" style="top:-9px;right:-6px">10</span><h4>A stronger opening</h4><span id="fbBetter"></span></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn light" data-act="retry">Try again</button>
+        <button class="btn dark" data-act="next" id="nextBtn">Next question</button>
+      </div>
+    </section>
+
+    <!-- 6. Summary -->
+    <section class="screen" data-s="5">
+      <div class="bar">
+        <span style="width:36px"></span><span class="title">Session done</span><span style="width:36px"></span>
+      </div>
+      <div class="scroll">
+        <div class="big">3 of 3</div>
+        <p style="font-size:15px;color:var(--muted)">answers practised out loud · 4 min 52 s</p>
+        <div class="sumcard"><h4>Your biggest win</h4><p>Clear, confident "why Infosys" answer tied to the company's training programme.</p></div>
+        <div class="sumcard"><h4>Work on this</h4><p>Use STAR for team stories: you skipped the Result. Cut "basically" (used 5 times).</p></div>
+        <div class="sumcard" style="position:relative"><span class="tag num" style="top:-9px;right:-6px">11</span>
+          <div class="switch-row"><div><b style="font-size:15px">Practise again tonight at 9</b><small>One reminder before your interview</small></div><button class="switch on" aria-label="Reminder"></button></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn dark" data-go="0" data-act="finish">Back to chat with summary</button>
+      </div>
+    </section>
+  </div>
+
+  <aside class="notes" id="notes"></aside>
+</div>
+
+<div class="boardwrap" id="board"></div>
+
+<script>
+const NOTES = [
+  {step:"Step 1 · Discover", title:"A nudge at the moment of need", why:"Voice is offered when the user is already preparing for an interview, not as a generic mic icon.",
+   items:["Practice card appears after job-prep intents (interview, HR round, mock). Copy answers the three fears up front: quiet, short, reviewable."]},
+  {step:"Step 2 · Set up", title:"Two taps, with privacy made visible", why:"Addresses the #1 barrier (people around me, 65%) before the first word is spoken.",
+   items:["Context pre-filled from the chat, so there's nothing to type.","Language choice includes Hinglish, so code-mixed speech is expected, not an error (44% worry about accent).","Quiet mode turns on automatically when earphones are connected: low-volume speech, no speaker output."]},
+  {step:"Step 3 · Answer", title:"Hold to talk, at your own pace", why:"Hold-to-talk borrows WhatsApp voice notes, a gesture Indian users already trust.",
+   items:["One question at a time, read on screen and optionally played in earphones.","Hold to talk, release to stop. No always-on mic; 'Type instead' stays one tap away."]},
+  {step:"Step 4 · Review", title:"Nothing is scored until you check it", why:"Fixes the control barrier (53%): the transcript is editable before it counts.",
+   items:["Editable transcript with re-record. This review step later rolls out to general dictation.","Low-confidence words (often names or Hindi terms) are highlighted, so trust is earned, not assumed."]},
+  {step:"Step 5 · Feedback", title:"Feedback that makes speaking worth it", why:"Gives voice a clear payoff typing can't: feedback on how you sound.",
+   items:["Scores on structure, clarity and filler words, the things only spoken practice reveals.","A rewritten opening the user can say again with 'Try again'."]},
+  {step:"Step 6 · Return", title:"Turn one session into a habit", why:"Repeat practice within 7 days is a P1 metric.",
+   items:["Summary saved back to the chat, plus an opt-in reminder timed before the interview."]}
+];
+const NUMS=[[1],[2,3,4],[5,6],[7,8],[9,10],[11]];
+const QS=[
+ {q:"Tell me about yourself.", a:"Hi, I'm Riya, final year B.Tech in computer science from RV College. I've done an internship at a fintech startup where I built dashboards in Python and SQL. Basically I enjoy solving problems with data, and I also led our college coding club. I'm looking to start my career at Infosys where I can learn and grow.",
+  flags:["RV College","Basically"], s:["7/10","8/10","3"],
+  good:"Clear education-to-experience flow, and you named concrete tools (Python, SQL).",
+  imp:"End with why this role fits you. Drop 'basically' and 'like'.",
+  better:"\"I'm a final-year CS student who turns messy data into decisions. At a fintech internship I built dashboards the ops team used daily, and I'd love to bring that to Infosys's client projects.\""},
+ {q:"Why do you want to join Infosys?", a:"Infosys has a very strong training programme at Mysuru and I think that foundation is important for freshers. Also the company works with global clients across domains, so I'll get exposure to different technologies and I want to grow with the company long term.",
+  flags:["Mysuru"], s:["8/10","9/10","1"],
+  good:"Specific and researched: you mentioned the Mysuru training programme.",
+  imp:"Link it to a personal goal or a project you'd like to work on.",
+  better:"\"I want a strong engineering foundation, and Infosys's Mysuru programme is the best-known one for freshers. Long-term I'd like to work on data platforms for global clients, which Infosys does at scale.\""},
+ {q:"Describe a difficult situation in a team.", a:"In my final year project one teammate was not contributing and the deadline was close. So I talked to him one on one, understood he was struggling with the backend part, and we split the work differently. Basically we managed to submit on time.",
+  flags:["Basically"], s:["6/10","8/10","2"],
+  good:"Good empathy: you spoke to the teammate before escalating.",
+  imp:"Use STAR. Add the Result in numbers (grade, demo, feedback).",
+  better:"\"...We re-split the work so he owned the UI, which he was strong at. We submitted two days early and got an A, the top grade in our batch.\""}
+];
+let q=0, langSel="English";
+function setT(text){ let h=text.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); (QS[q].flags||[]).forEach(f=>{ h=h.split(f).join('<span class="flag">'+f+'</span>'); }); $("#transcript").innerHTML=h; }
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+function renderNotes(i){
+  const n=NOTES[i];
+  $("#notes").innerHTML=`<div class="step">${n.step}</div><h2>${n.title}</h2><p class="why">${n.why}</p>
+  <ol>${n.items.map((t,k)=>`<li><span class="num">${NUMS[i][k]}</span><i>${t}</i></li>`).join("")}</ol>
+  <div class="flowbar">${NOTES.map((x,k)=>`<button class="${k===i?'on':''}" data-jump="${k}">${k+1}. ${x.step.split('· ')[1]}</button>`).join("")}</div>`;
+}
+function go(i){
+  $$(".screen").forEach(s=>s.classList.toggle("on",+s.dataset.s===i));
+  renderNotes(i);
+  if(i===2) setupQ();
+}
+function prog(){
+  ["#prog","#prog2","#prog3"].forEach(id=>{ $$(id+" i").forEach((el,k)=>{el.className=k<q?"done":k===q?"cur":"";}); });
+}
+function setupQ(){
+  $("#qnum").textContent=`QUESTION ${q+1} OF 3`; $("#qtext").textContent=QS[q].q;
+  $("#live").textContent="Hold the button and answer as you would in the room. A whisper is fine."; $("#live").classList.remove("has");
+  $("#langChip").textContent=langSel; prog();
+}
+function showFeedback(){
+  const d=QS[q]; $("#s1").textContent=d.s[0]; $("#s2").textContent=d.s[1]; $("#s3").textContent=d.s[2];
+  $("#fbGood").textContent=d.good; $("#fbImprove").textContent=d.imp; $("#fbBetter").textContent=d.better;
+  $("#nextBtn").textContent = q<2 ? "Next question" : "See summary";
+  prog(); go(4);
+}
+
+/* hold to talk */
+let rec=null, timer=null, words=[], heard="", usingReal=false;
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function startTalk(e){
+  e.preventDefault();
+  $("#mic").classList.add("rec"); $("#hintText").textContent="Listening… release to review";
+  $("#live").classList.add("has"); $("#live").textContent=""; heard="";
+  usingReal=false;
+  if(SR){
+    try{
+      rec=new SR(); rec.lang = langSel==="English"?"en-IN":"hi-IN"; rec.interimResults=true; rec.continuous=true;
+      rec.onresult=ev=>{ let t=""; for(const r of ev.results) t+=r[0].transcript; heard=t; $("#live").textContent=t; usingReal=true; };
+      rec.onerror=()=>{ fallback(); };
+      rec.start();
+      setTimeout(()=>{ if(!usingReal && $("#mic").classList.contains("rec")) fallback(); }, 1800);
+      return;
+    }catch(err){}
+  }
+  fallback();
+}
+function fallback(){
+  if(timer) return;
+  try{ rec && rec.abort(); }catch(e){}
+  usingReal=false; words=QS[q].a.split(" "); let k=0;
+  timer=setInterval(()=>{ if(k<words.length){ heard=words.slice(0,++k).join(" "); $("#live").textContent=heard; } },110);
+}
+function endTalk(){
+  if(!$("#mic").classList.contains("rec")) return;
+  $("#mic").classList.remove("rec"); $("#hintText").textContent="Hold to talk · release to review";
+  try{ rec && rec.stop(); }catch(e){}
+  clearInterval(timer); timer=null;
+  if(!usingReal) heard=QS[q].a;   // demo: complete the sample answer
+  if(!heard.trim()) heard=QS[q].a;
+  setT(heard); go(3);
+}
+$("#mic").addEventListener("pointerdown",startTalk);
+["pointerup","pointerleave","pointercancel"].forEach(ev=>$("#mic").addEventListener(ev,endTalk));
+
+document.addEventListener("click",e=>{
+  const g=e.target.closest("[data-go]"), a=e.target.closest("[data-act]"), j=e.target.closest("[data-jump]");
+  if(j){ const k=+j.dataset.jump; if(k===3) setT(QS[q].a); if(k===4){showFeedback();return;} go(k); return; }
+  if(a){
+    const act=a.dataset.act;
+    if(act==="type"){ $("#transcript").innerHTML=""; go(3); $("#transcript").focus(); return; }
+    if(act==="submit"){ showFeedback(); return; }
+    if(act==="retry"){ go(2); return; }
+    if(act==="next"){ if(q<2){ q++; go(2);} else go(5); return; }
+    if(act==="finish"){ q=0; }
+  }
+  if(g){ go(+g.dataset.go); }
+});
+$$("#lang button").forEach(b=>b.addEventListener("click",()=>{ $$("#lang button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); langSel=b.textContent; }));
+$("#quiet").addEventListener("click",function(){ this.classList.toggle("on"); $("#quietChip").style.display=this.classList.contains("on")?"":"none"; });
+$("#annBtn").addEventListener("click",function(){ const on=document.body.classList.toggle("ann"); this.setAttribute("aria-pressed",on); this.textContent=on?"Annotations on":"Annotations off"; });
+$("#restart").addEventListener("click",()=>{ q=0; go(0); });
+
+/* static board for wireframe export: ?board */
+if(location.search.includes("board")){
+  document.body.classList.add("board","ann");
+  const phone=$("#phone"); const row=document.createElement("div"); row.className="row";
+  const prep=[()=>{},()=>{},()=>{setupQ();},()=>{setT(QS[0].a);},()=>{const d=QS[0];$("#s1").textContent=d.s[0];$("#s2").textContent=d.s[1];$("#s3").textContent=d.s[2];$("#fbGood").textContent=d.good;$("#fbImprove").textContent=d.imp;$("#fbBetter").textContent=d.better;},()=>{}];
+  const part=new URLSearchParams(location.search).get("board");
+  const from=part==="2"?3:0, to=part==="1"?3:(part==="2"?6:6);
+  for(let i=0;i<6;i++){ prep[i](); }
+  for(let i=from;i<to;i++){
+    prep[i]();
+    const col=document.createElement("div"); col.className="col";
+    const clone=phone.cloneNode(true); clone.removeAttribute("id");
+    clone.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",+s.dataset.s===i));
+    clone.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
+    const n=NOTES[i];
+    col.appendChild(clone);
+    const t=document.createElement("div");
+    t.innerHTML=part==="3"?`<h3>${i+1}. ${n.title}</h3>`:`<h3>${i+1}. ${n.title}</h3><ol>${n.items.map((x,k)=>`<li><span class="num">${NUMS[i][k]}</span><span>${x}</span></li>`).join("")}</ol>`;
+    col.appendChild(t); row.appendChild(col);
+  }
+  $("#board").appendChild(row);
+} else { go(0); }
+</script>
+</body>
+</html>
