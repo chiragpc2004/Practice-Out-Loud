@@ -11,7 +11,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#0b0b0c">
 <style>
   :root{
     --bg:#ffffff; --surface:#f4f4f4; --surface2:#f9f9f9; --ink:#0d0d0d; --muted:#5d5d5d; --faint:#8f8f8f;
@@ -220,6 +220,41 @@
   @media (max-width:560px){.phone{width:100%;max-width:375px}.wrap{padding:0 16px}.stats,.steps,.docs{grid-template-columns:1fr}.navlinks{gap:14px}}
   body.board .nav,body.board .hero,body.board section.band,body.board footer{display:none}
   body.board section.band#prototype{display:none}
+  /* ---------- dark single-screen layout ---------- */
+  html,body{height:100%}
+  body:not(.board){background:#0b0b0c;color:#ececec;overflow:hidden}
+  .nav{background:rgba(11,11,12,.8);border-bottom:1px solid #1f1f22}
+  .brand{color:#fff}
+  .brand .mark{background:#1a1a1d;box-shadow:inset 0 0 0 1px #2a2a2e}
+  .btn-s.line{background:transparent;color:#ececec;border-color:#2e2e33}
+  .btn-s.line:hover{border-color:#ececec}
+  .app{height:calc(100vh - 65px);max-width:1160px;margin:0 auto;padding:28px 28px 24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:56px;align-items:center}
+  .left{display:flex;flex-direction:column;gap:18px;max-width:460px;justify-self:end}
+  .headline{font-size:40px;line-height:1.08;letter-spacing:-1.4px;font-weight:700;color:#fff}
+  .lede{font-size:16px;line-height:1.55;color:#a1a1aa}
+  .demo-tools{display:flex;gap:8px}
+  body:not(.board) .pill{background:transparent;color:#d4d4d8;border:1px solid #2e2e33}
+  body:not(.board) .pill[aria-pressed="true"]{background:#fff;color:#0b0b0c;border-color:#fff}
+  .notes{width:auto;background:#141416;border:1px solid #232327;box-shadow:none;border-radius:20px;padding:20px}
+  .notes .step{color:#34d39e}
+  .notes h2{color:#fff;font-size:19px}
+  .notes .why,.notes li{color:#a1a1aa}
+  .notes li i{color:#d4d4d8}
+  .flowbar button{background:#1f1f23;color:#a1a1aa}
+  .flowbar button.on{background:#fff;color:#0b0b0c}
+  .doclinks{display:flex;gap:10px 22px;flex-wrap:wrap;justify-content:flex-start}
+  .doclinks a{font-size:14px;font-weight:500;color:#ececec;text-decoration:none;border-bottom:1px solid #333;padding-bottom:2px}
+  .doclinks a:hover{border-color:#ececec}
+  .doclinks a i{font-style:normal;color:#34d39e}
+  .fine{font-size:12px;line-height:1.5;color:#71717a}
+  .right{display:flex;align-items:center;justify-content:center;height:100%}
+  .phonebox{position:relative}
+  .phonebox .phone{transform-origin:top left;box-shadow:0 40px 120px rgba(16,163,127,.18),0 0 0 1px #2a2a2e;border-color:#1c1c1f}
+  @media (max-width:900px){body:not(.board){overflow:auto}.app{height:auto;grid-template-columns:1fr;gap:28px}.left{justify-self:center}.phonebox .phone{transform:none!important}.phonebox{width:auto!important;height:auto!important}}
+  .phone{color:var(--ink)}
+  @media (max-height:800px) and (min-width:901px){.headline{font-size:32px;letter-spacing:-1px}.lede{font-size:15px}.left{gap:14px}.notes{padding:16px}.notes h2{font-size:17px}.notes ol{margin-top:10px;gap:8px}.flowbar{margin-top:12px}.app{padding:20px 28px}}
+  body.board .app{display:none}
+
 
   .boardwrap{display:none}
   body.board .boardwrap{display:block;padding:32px;background:#fff}
@@ -237,22 +272,29 @@
 <header class="nav"><div class="wrap">
   <a class="brand" href="#"><span class="mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10a37f" stroke-width="2.6" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg></span>Practice Out Loud</a>
   <nav class="navlinks">
-    <a href="#prototype">Prototype</a><a class="hide-s" href="#docs">Docs</a>
+    
     <a class="btn-s line" href="https://github.com/chiragpc2004/Practice-Out-Loud" target="_blank" rel="noopener"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z"/></svg>GitHub</a>
   </nav>
 </div></header>
 
-<section class="band alt" id="prototype" style="border-top:none;padding-top:48px"><div class="wrap">
-  <div class="demo-head">
-    <div><h2 class="h2" style="font-size:30px;letter-spacing:-.7px">Practise interviews out loud with ChatGPT</h2>
-    <p class="intro">A concept for a private, reviewable voice mode for job seekers in India. Tap through the flow and hold the mic to answer (live transcription in Chrome).</p></div>
+<main class="app">
+  <div class="left">
+    <h1 class="headline">Practise interviews out loud with ChatGPT</h1>
+    <p class="lede">A concept for a private, reviewable voice mode for job seekers in India. Tap through the flow and hold the mic to answer.</p>
     <div class="demo-tools">
       <button class="pill" id="annBtn" aria-pressed="true">Annotations on</button>
       <button class="pill" id="restart" aria-pressed="false">Restart</button>
     </div>
+    <aside class="notes" id="notes"></aside>
+    <div class="doclinks">
+      <a href="https://github.com/chiragpc2004/Practice-Out-Loud/blob/main/docs/01-landscape/landscape-deck.pdf" target="_blank" rel="noopener">Voice landscape <i>↗</i></a>
+      <a href="https://github.com/chiragpc2004/Practice-Out-Loud/blob/main/docs/02-research/research-deck.pdf" target="_blank" rel="noopener">User research <i>↗</i></a>
+      <a href="https://github.com/chiragpc2004/Practice-Out-Loud/blob/main/docs/03-solution/3-pager.pdf" target="_blank" rel="noopener">Solution 3-pager <i>↗</i></a>
+    </div>
+    <p class="fine">A product case study by Chirag P C. Concept prototype, not affiliated with OpenAI. Research data is simulated.</p>
   </div>
-<div class="stage">
-  <div class="phone" id="phone">
+  <div class="right"><div class="phonebox" id="phonebox">
+<div class="phone" id="phone">
     <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
 
     <!-- 1. Chat with nudge -->
@@ -411,23 +453,8 @@
       </div>
     </section>
   </div>
-
-  <aside class="notes" id="notes"></aside>
-</div>
-
-</div></section>
-
-<section class="band" id="docs"><div class="wrap doclinks">
-  <span class="kicker">Case study</span>
-  <a href="https://github.com/chiragpc2004/Practice-Out-Loud/blob/main/docs/01-landscape/landscape-deck.pdf" target="_blank" rel="noopener">1 · Voice landscape <i>→</i></a>
-  <a href="https://github.com/chiragpc2004/Practice-Out-Loud/blob/main/docs/02-research/research-deck.pdf" target="_blank" rel="noopener">2 · User research <i>→</i></a>
-  <a href="https://github.com/chiragpc2004/Practice-Out-Loud/blob/main/docs/03-solution/3-pager.pdf" target="_blank" rel="noopener">3 · Solution 3-pager <i>→</i></a>
-</div></section>
-
-<footer><div class="wrap">
-  <span>Practice Out Loud · a product case study by <a href="https://github.com/chiragpc2004" target="_blank" rel="noopener">Chirag P C</a></span>
-  <span>Concept prototype, not affiliated with OpenAI. Research data is simulated for this study.</span>
-</div></footer>
+  </div></div>
+</main>
 
 <div class="boardwrap" id="board"></div>
 
@@ -572,6 +599,15 @@ if(location.search.includes("board")){
   }
   $("#board").appendChild(row);
 } else { go(0); }
+
+function fitPhone(){
+  const box=document.getElementById("phonebox"); if(!box) return;
+  const ph=box.querySelector(".phone");
+  if(window.innerWidth<=900){ph.style.transform="";box.style.width="";box.style.height="";return;}
+  const avail=window.innerHeight-65-48, k=Math.min(1,avail/800);
+  ph.style.transform=`scale(${k})`; box.style.width=(395*k)+"px"; box.style.height=(800*k)+"px";
+}
+window.addEventListener("resize",fitPhone); fitPhone();
 </script>
 </body>
 </html>
